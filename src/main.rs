@@ -19,7 +19,8 @@ struct Patterns {
     replace: Vec<ReplacePattern>,
 }
 
-fn parse_patterns<P>(path: P) -> Result<Patterns, String> where P: AsRef<Path> {
+/// Read the config file into a struct.
+fn parse_patterns(path: impl AsRef<Path>) -> Result<Patterns, String> {
     let file = File::open(path).map_err(|e| format!("{}", e))?;
     let reader = BufReader::new(file);
 
@@ -62,9 +63,9 @@ struct Cli {
     #[clap(short, long, default_value_t = String::from("patterns.yaml"))]
     patterns: String,
 
-    /// Comma separated list of languages to clean.
-    #[clap(short, long, default_value_t = String::from("en,de,fr,es,it,pt"))]
-    languages: String,
+    /// List of languages to clean. Can be specified multiple times.
+    #[clap(short, long)]
+    languages: Vec<String>,
 
     /// Input directory, where the raw corpora are located
     #[clap(short, long, default_value_t = String::from("raw"))]
@@ -82,7 +83,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     let corpus = cli.corpus;
-    let languages:Vec<_> = cli.languages.split(',').collect();
+    let languages = cli.languages;
     let input = PathBuf::from(cli.input_dir);
     let output = PathBuf::from(cli.output_dir);
     create_dir_all(&output).unwrap();
